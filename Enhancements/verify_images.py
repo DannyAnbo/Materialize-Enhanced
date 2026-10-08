@@ -52,5 +52,41 @@ if resolution.exists():
     large = Image.open(resolution / 'export-4k.png')
     assert large.size == (4096, 4096), large.size
     rows.append(dict(format='png', check='real 4K export', size=list(large.size)))
+workflow = folder / 'workflow'
+if workflow.exists():
+    from PIL import ImageOps
+    packed = Image.open(workflow / 'packed-input.png').convert('RGBA')
+    for fmt in ('png', 'tga', 'tiff'):
+        actual = Image.open(workflow / f'roughness-{fmt}.{fmt}').convert('RGBA')
+        assert actual.tobytes() == packed.tobytes(), fmt
+        rows.append(dict(format=fmt, check='roughness export exact RGBA', rgba_exact=True))
+    for fmt in ('jpg', 'bmp'):
+        actual = Image.open(workflow / f'roughness-{fmt}.{fmt}')
+        assert actual.size == packed.size, (fmt, actual.size)
+        rows.append(dict(format=fmt, check='roughness export dimensions', size=list(actual.size)))
+    red = packed.getchannel('R')
+    expected = Image.merge('RGBA', (red, red, red, red))
+    actual = Image.open(workflow / 'property-roughness.png').convert('RGBA')
+    assert actual.tobytes() == expected.tobytes()
+    rows.append(dict(check='roughness property RGBA channels', rgba_exact=True))
+    canonical = Image.open(workflow / 'generated-canonical.png').convert('RGBA')
+    expected = Image.merge('RGBA', tuple(ImageOps.invert(c) for c in canonical.split()[:3]) + (canonical.getchannel('A'),))
+    actual = Image.open(workflow / 'generated-roughness.png').convert('RGBA')
+    assert actual.tobytes() == expected.tobytes()
+    rows.append(dict(check='actual generator roughness export', rgba_exact=True))
+unicode = folder / 'unicode' / '中文 文件夹'
+if unicode.exists():
+    reference = Image.open(unicode / '木板 合并通道.png').convert('RGBA')
+    for fmt in ('tga', 'tiff'):
+        actual = Image.open(unicode / f'木板 合并通道.{fmt}').convert('RGBA')
+        assert actual.tobytes() == reference.tobytes(), fmt
+        rows.append(dict(format=fmt, check='Chinese file and directory round trip', rgba_exact=True))
+    # BMP alpha is not consistently exposed by external decoders; compare RGB.
+    actual = Image.open(unicode / '木板 合并通道.bmp').convert('RGB')
+    assert actual.tobytes() == reference.convert('RGB').tobytes()
+    rows.append(dict(format='bmp', check='Chinese file and directory round trip RGB', rgb_exact=True))
+    actual = Image.open(unicode / '中文 工程_金属度.tga').convert('RGBA')
+    assert actual.tobytes() == reference.tobytes()
+    rows.append(dict(check='Chinese custom export name', rgba_exact=True))
 (folder / 'independent-image-verification.json').write_text(json.dumps(rows, indent=2), encoding='utf-8')
 print(json.dumps(rows, indent=2))

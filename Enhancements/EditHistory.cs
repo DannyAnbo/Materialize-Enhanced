@@ -7,7 +7,7 @@ public static partial class MaterializeEnhancements
 {
     // Snapshots own immutable encoded images, never Unity objects that another operation can destroy.
     sealed class ImageState { public byte[] png; public string name; public FilterMode filter; public TextureWrapMode wrap; public int aniso; }
-    sealed class EditState { public object[][] values; public object[][] extras; public ImageState[] maps,sources; public int[] inputModes; public bool[] inputInvert; public int alpha,width,height; public bool ranges; public string[] names; }
+    sealed class EditState { public object[][] values; public object[][] extras; public ImageState[] maps,sources; public int[] inputModes; public bool[] inputInvert; public int alpha,width,height; public bool ranges,sourceRoughness; public string[] names,sourceNames; }
     static readonly List<EditState> History=new List<EditState>();
     static readonly Dictionary<int,ImageState> imageCache=new Dictionary<int,ImageState>();
     static readonly HashSet<int> dirtyImages=new HashSet<int>();
@@ -66,11 +66,13 @@ public static partial class MaterializeEnhancements
             bool replaced=i<8&&(!object.ReferenceEquals(texture,sourceTextures[i])||(texture!=null&&dirtyImages.Contains(texture.GetInstanceID())));
             state.maps[i]=SnapshotImage(texture);
             if(i<8) {
-                if(replaced){sourceImages[i]=state.maps[i];sourceTextures[i]=texture;InputModes[i]=0;InputInvert[i]=false;}
+                if(replaced){sourceImages[i]=state.maps[i];sourceTextures[i]=texture;InputModes[i]=0;InputInvert[i]=false;SourceFileNames[i]="";if(i==5)smoothnessSourceRoughness=false;}
                 if(texture!=null&&InputModes[i]==0&&!InputInvert[i]&&sourceImages[i]==null)sourceImages[i]=state.maps[i];
             }
         }
         state.sources=(ImageState[])sourceImages.Clone();state.inputModes=(int[])InputModes.Clone();state.inputInvert=(bool[])InputInvert.Clone();
+        state.sourceRoughness=smoothnessSourceRoughness;
+        state.sourceNames=(string[])SourceFileNames.Clone();
         return state;
     }
     static bool SameValues(object[][] a,object[][] b) {
@@ -78,9 +80,10 @@ public static partial class MaterializeEnhancements
         for(int i=0;i<a.Length;i++){if(a[i].Length!=b[i].Length)return false;for(int j=0;j<a[i].Length;j++)if(!object.Equals(a[i][j],b[i][j]))return false;}return true;
     }
     static bool Equal(EditState a,EditState b) {
-        if(a==null||b==null||a.alpha!=b.alpha||a.ranges!=b.ranges||a.width!=b.width||a.height!=b.height||!SameValues(a.values,b.values)||!SameValues(a.extras,b.extras))return false;
-        for(int i=0;i<9;i++)if(!object.ReferenceEquals(a.maps[i],b.maps[i]))return false;
-        for(int i=0;i<8;i++)if(a.names[i]!=b.names[i]||a.inputModes[i]!=b.inputModes[i]||a.inputInvert[i]!=b.inputInvert[i]||!object.ReferenceEquals(a.sources[i],b.sources[i]))return false;return true;
+        if(a==null||b==null||a.alpha!=b.alpha||a.ranges!=b.ranges||a.sourceRoughness!=b.sourceRoughness||a.width!=b.width||a.height!=b.height||!SameValues(a.values,b.values)||!SameValues(a.extras,b.extras))return false;
+        // Property map is derived from channel selections, source maps and the global workflow.
+        for(int i=0;i<8;i++)if(!object.ReferenceEquals(a.maps[i],b.maps[i]))return false;
+        for(int i=0;i<8;i++)if(a.names[i]!=b.names[i]||a.sourceNames[i]!=b.sourceNames[i]||a.inputModes[i]!=b.inputModes[i]||a.inputInvert[i]!=b.inputInvert[i]||!object.ReferenceEquals(a.sources[i],b.sources[i]))return false;return true;
     }
     static void ResetHistory() {
         History.Clear();imageCache.Clear();dirtyImages.Clear();historyIndex=0;pending=false;last=Capture();History.Add(last);
@@ -133,9 +136,13 @@ public static partial class MaterializeEnhancements
             if(mapsChanged){RenderTexture hd=Get(Main,"_HDHeightMap") as RenderTexture;if(hd!=null){hd.Release();UnityEngine.Object.Destroy(hd);}Set(Main,"_HDHeightMap",null);}
             Alpha=state.alpha;FreeRanges=state.ranges;Names=(string[])state.names.Clone();TextureWidth=state.width;TextureHeight=state.height;
             RestoreInputHistory(state.sources,state.inputModes,state.inputInvert);
+            Array.Copy(state.sourceNames,SourceFileNames,8);
+            smoothnessSourceRoughness=state.sourceRoughness;ClearSurfaceDisplay();
             if(sample!=null&&previewIndex>=0)sample.SetTexture("_MainTex",(Get(Main,MapFields[previewIndex]) as Texture)??(Get(Main,"_TextureGrey") as Texture));
             Call(Main,"SetFormat",Get(Main,"selectedFormat"));
             Refresh(mapsChanged);
+            if(Get(Main,"_PropertyMap")!=null)Call(Main,"ProcessPropertyMap");
+            RefreshWorkflowPreview();
             Shader.SetGlobalInt("_FlipNormalY",Convert.ToBoolean(Get(extraObjects[5],"normalMapMayaStyle"))?1:0);
             if(Convert.ToBoolean(Get(guis[7],"planeShown")))Shader.DisableKeyword("TOP_PROJECTION");else Shader.EnableKeyword("TOP_PROJECTION");
             object probe=Get(Main,"reflectionProbe");if(probe!=null)Call(probe,"RenderProbe");

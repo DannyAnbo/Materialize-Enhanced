@@ -44,8 +44,8 @@ public static partial class MaterializeEnhancements
             if(!Bind())return false;Commit();
             if(InputModes[index]==mode&&InputInvert[index]==inverse)return true;
             ImageState source=sourceImages[index];Texture2D old=Get(Main,MapFields[index]) as Texture2D;
-            if(source!=null)result=BuildInputTexture(source,mode,inverse);
             InputModes[index]=mode;InputInvert[index]=inverse;
+            if(source!=null)result=BuildMapInput(index);
             if(old!=null){Set(Main,MapFields[index],result);sourceTextures[index]=result;RefreshInputTexture(index);}
             Commit();DestroyUnusedTexture(old);
             Status=T("已选择来源通道：","Source channel selected: ")+(mode==0?T("整图","Full image"):InputChannelNames[mode])+(inverse?T("（反相）"," (inverted)"):"");return true;
@@ -53,7 +53,9 @@ public static partial class MaterializeEnhancements
     }
     static void AdoptImportedTexture(int index,Texture2D original) {
         ImageState source=SnapshotImage(original);Texture2D old=Get(Main,MapFields[index]) as Texture2D;
-        Texture2D result=InputModes[index]==0&&!InputInvert[index]&&(TextureWidth==0||(original.width==TextureWidth&&original.height==TextureHeight))?original:BuildInputTexture(source,InputModes[index],InputInvert[index]);
+        if(index==5)smoothnessSourceRoughness=UseRoughness;
+        sourceImages[index]=source;
+        Texture2D result=InputModes[index]==0&&!InputInvert[index]&&!(index==5&&smoothnessSourceRoughness)&&(TextureWidth==0||(original.width==TextureWidth&&original.height==TextureHeight))?original:BuildMapInput(index);
         sourceImages[index]=source;sourceTextures[index]=result;Set(Main,MapFields[index],result);
         RefreshInputTexture(index);DestroyUnusedTexture(old);if(!object.ReferenceEquals(result,original))DestroyUnusedTexture(original);
     }
@@ -61,7 +63,8 @@ public static partial class MaterializeEnhancements
         for(int i=0;i<8;i++){sourceImages[i]=sources[i];InputModes[i]=modes[i];InputInvert[i]=inverses[i];sourceTextures[i]=Get(Main,MapFields[i]) as Texture2D;}
     }
     static void ClearInputSources() {
-        for(int i=0;i<8;i++){sourceImages[i]=null;sourceTextures[i]=null;InputModes[i]=0;InputInvert[i]=false;}
+        smoothnessSourceRoughness=false;
+        for(int i=0;i<8;i++){sourceImages[i]=null;sourceTextures[i]=null;InputModes[i]=0;InputInvert[i]=false;SourceFileNames[i]="";}
     }
     static string[] PackInputSources() {
         string[] packed=new string[8];

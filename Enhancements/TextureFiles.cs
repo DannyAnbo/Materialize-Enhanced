@@ -5,11 +5,12 @@ using UnityEngine;
 
 public static partial class MaterializeEnhancements
 {
-    // Keep all paths passed to FreeImage ASCII-only; .NET handles the final Unicode filename.
+    // FreeImage uses its UTF-16 APIs; .NET stages the final Unicode filename atomically.
     public static IEnumerator SaveTexture(object sl,string extension,Texture2D texture,string path) {
         if(texture==null)yield break;
         Set(sl,"busy",true);string input=null,converted=null,staged=null;IntPtr image=IntPtr.Zero;Texture2D original=texture;
         try {
+            texture=WorkflowTexture(texture);
             texture=ResizeTexture(texture,TextureWidth,TextureHeight);
             extension=extension.ToLowerInvariant();if(extension=="jpeg")extension="jpg";if(extension=="tif")extension="tiff";
             string destination=Path.GetFullPath(path+"."+extension);Directory.CreateDirectory(Path.GetDirectoryName(destination));
@@ -28,7 +29,7 @@ public static partial class MaterializeEnhancements
             RememberSave(original,destination);Status=T("贴图已保存：","Texture saved: ")+destination;
         }catch(Exception e){Error("Save texture",e);}finally {
             if(image!=IntPtr.Zero)UnloadImage(image);
-            if(!object.ReferenceEquals(texture,original))UnityEngine.Object.Destroy(texture);
+            if(!object.ReferenceEquals(texture,original)&&!object.ReferenceEquals(texture,roughnessDisplay))UnityEngine.Object.Destroy(texture);
             foreach(string file in new string[]{input,converted,staged})if(file!=null&&File.Exists(file))File.Delete(file);
             Set(sl,"busy",false);
         }

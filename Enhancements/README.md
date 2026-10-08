@@ -29,6 +29,6 @@ python -m pip install Pillow numpy
 python .\verify_images.py 'D:\Temp\materialize-check'
 ```
 
-Run the executable command from the installation directory, and run the Python command from this source directory. Successful runtime completion ends with `COMPLETE failures=0`. Deliberately invalid XML, missing files and failed-save cases produce expected diagnostics. Independent image checks decode exported files, verify packed channels without alpha premultiplication, and verify selected custom and 4K dimensions. Release v1.78-enhanced.5 passed 141 runtime checks and 18 independent image checks. See `runtime-tests.txt` and `independent-image-verification.json`.
+Run the executable command from the installation directory, and run the Python command from this source directory. Successful runtime completion ends with `COMPLETE failures=0`. Deliberately invalid XML, missing files and failed-save cases produce expected diagnostics. Independent image checks decode exported files, verify packed channels without alpha premultiplication, and verify selected custom and 4K dimensions. Release v1.78-enhanced.6 passed 202 runtime checks and 29 independent image checks, including execution from a Chinese installation directory, actual smoothness generation and Unicode file/directory imports. See `runtime-tests.txt` and `independent-image-verification.json`.
 
 The release archive excludes personal projects, recent history, diagnostic logs, generated test images and build caches. Chinese UI/docs are supported; public file and directory names use ASCII.

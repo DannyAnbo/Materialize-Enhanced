@@ -30,6 +30,7 @@ public static class EnhanceSelfTest
     static bool Same(Texture2D a,Texture2D b){if(a==null||b==null||a.width!=b.width||a.height!=b.height)return false;Color32[] ap=a.GetPixels32(),bp=b.GetPixels32();for(int i=0;i<ap.Length;i++)if(!ap[i].Equals(bp[i]))return false;return true;}
     static IEnumerator Run(object main) {
         yield return new WaitForSeconds(0.5f);
+        MaterializeEnhancements.SetSurfaceWorkflow(false);
         object sl=Get(main,"SaveLoadProjectScript");object matGui=Get(sl,"materailGui"),mat=Get(matGui,"MatS");
         try {
             MaterializeEnhancements.Commit();Set(mat,"Metallic",2f);Set(mat,"MetallicText","2");MaterializeEnhancements.Commit();
@@ -111,6 +112,8 @@ public static class EnhanceSelfTest
         yield return ((MonoBehaviour)main).StartCoroutine(RecentSelfTest.Run(main,output,Check));
         yield return ((MonoBehaviour)main).StartCoroutine(SessionSelfTest.Run(main,output,Check));
         yield return ((MonoBehaviour)main).StartCoroutine(ResolutionSelfTest.Run(main,output,Check));
+        yield return ((MonoBehaviour)main).StartCoroutine(WorkflowSelfTest.Run(main,output,Check));
+        yield return ((MonoBehaviour)main).StartCoroutine(UnicodeSelfTest.Run(main,output,Check));
         report.AppendLine("COMPLETE failures="+failures);File.WriteAllText(Path.Combine(output,"runtime-tests.txt"),report.ToString());
         MaterializeEnhancements.Status="Runtime checks complete: "+failures+" failures";
     }

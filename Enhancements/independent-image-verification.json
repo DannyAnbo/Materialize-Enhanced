@@ -122,5 +122,63 @@
       4096,
       4096
     ]
+  },
+  {
+    "format": "png",
+    "check": "roughness export exact RGBA",
+    "rgba_exact": true
+  },
+  {
+    "format": "tga",
+    "check": "roughness export exact RGBA",
+    "rgba_exact": true
+  },
+  {
+    "format": "tiff",
+    "check": "roughness export exact RGBA",
+    "rgba_exact": true
+  },
+  {
+    "format": "jpg",
+    "check": "roughness export dimensions",
+    "size": [
+      4,
+      2
+    ]
+  },
+  {
+    "format": "bmp",
+    "check": "roughness export dimensions",
+    "size": [
+      4,
+      2
+    ]
+  },
+  {
+    "check": "roughness property RGBA channels",
+    "rgba_exact": true
+  },
+  {
+    "check": "actual generator roughness export",
+    "rgba_exact": true
+  },
+  {
+    "format": "tga",
+    "check": "Chinese file and directory round trip",
+    "rgba_exact": true
+  },
+  {
+    "format": "tiff",
+    "check": "Chinese file and directory round trip",
+    "rgba_exact": true
+  },
+  {
+    "format": "bmp",
+    "check": "Chinese file and directory round trip RGB",
+    "rgb_exact": true
+  },
+  {
+    "check": "Chinese custom export name",
+    "rgba_exact": true
   }
 ]

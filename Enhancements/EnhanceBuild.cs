@@ -50,10 +50,13 @@ po.Fields.Add(new FieldDefUser("zhInputInvert",new FieldSig(new SZArraySig(mod.C
 po.Fields.Add(new FieldDefUser("zhInputSources",new FieldSig(new SZArraySig(mod.CorLibTypes.String)),FieldAttributes.Public));
 po.Fields.Add(new FieldDefUser("zhSessionValues",new FieldSig(new SZArraySig(mod.CorLibTypes.String)),FieldAttributes.Public));
 po.Fields.Add(new FieldDefUser("zhTextureSize",new FieldSig(new SZArraySig(mod.CorLibTypes.Int32)),FieldAttributes.Public));
+po.Fields.Add(new FieldDefUser("zhSourceRoughness",new FieldSig(mod.CorLibTypes.Boolean),FieldAttributes.Public));
+po.Fields.Add(new FieldDefUser("zhSourceNames",new FieldSig(new SZArraySig(mod.CorLibTypes.String)),FieldAttributes.Public));
 Prefix(M("MainGui","Update"),Instruction.Create(OpCodes.Ldarg_0),Instruction.Create(OpCodes.Call,H("Tick")));
 Replace(M("MainGui","OnGUI"),"Draw");
 Replace(M("MainGui","OpenFile"),"OpenFile");
 Replace(M("MainGui","PasteFile"),"PasteFile");
+Replace(M("MainGui","SetLoadedTexture"),"SetLoadedTexture");
 Replace(M("SaveLoadProject","SaveProject"),"SaveProject");
 Replace(M("SaveLoadProject","LoadProject"),"LoadProject");
 Replace(M("SaveLoadProject","SaveAllFiles"),"ExportAll");

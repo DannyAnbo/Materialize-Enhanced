@@ -29,7 +29,7 @@ public static partial class MaterializeEnhancements
     static object[] guis,settings;
     static bool started,cliDone,windowOpen;
     static float changedAt;
-    static Rect window=new Rect(1180,105,520,520);
+    static Rect window=new Rect(1180,65,520,600);
     static string[] editNames;
     static string configPath { get {return Path.Combine(Application.dataPath,"zh_config.txt");} }
     static string T(string zh,string en){return English?en:zh;}
@@ -68,6 +68,7 @@ public static partial class MaterializeEnhancements
                 if(k=="alpha" && int.TryParse(v,out n))Alpha=Mathf.Clamp(n,0,6);
                 else if(k=="freeRanges")FreeRanges=v!="0";
                 else if(k=="language")English=v=="en";
+                else if(k=="defaultSurface")DefaultRoughness=v=="roughness";
                 else if(k.StartsWith("name") && int.TryParse(k.Substring(4),out n) && n>=0 && n<8 && v.Length>0)Names[n]=v;
             }
         }catch(Exception e){Error("Config",e);}
@@ -76,6 +77,7 @@ public static partial class MaterializeEnhancements
         try {
             ValidateNames(Names);
             StringBuilder b=new StringBuilder();b.AppendLine("alpha="+Alpha);b.AppendLine("freeRanges="+(FreeRanges?"1":"0"));b.AppendLine("language="+(English?"en":"zh"));
+            b.AppendLine("defaultSurface="+(DefaultRoughness?"roughness":"smoothness"));
             for(int i=0;i<8;i++)b.AppendLine("name"+i+"="+Names[i]);
             File.WriteAllText(configPath,b.ToString(),new UTF8Encoding(false));Status=T("配置已保存，立即生效","Settings saved and applied");
         }catch(Exception e){Error("Config",e);}
@@ -119,6 +121,7 @@ public static partial class MaterializeEnhancements
             PollDrops();
             NormalizeGeneratedMaps();
             TrackHistory();
+            RefreshWorkflowPreview();
             object browser=Get(main,"fileBrowser");
             bool browsing=browser!=null&&Convert.ToBoolean(Get(browser,"isActive"));
             SessionTick(browsing);
@@ -171,7 +174,7 @@ public static partial class MaterializeEnhancements
                 }
                 pixels[i].a=(byte)Mathf.RoundToInt(Mathf.Clamp01(a)*255f);
             }
-            pm.SetPixels32(pixels);pm.Apply();
+            ApplySurfaceProperty(pixels);pm.SetPixels32(pixels);pm.Apply();
         }catch(Exception e){Error("Alpha",e);}
     }
     static string[] Pack(object main) {
@@ -188,7 +191,7 @@ public static partial class MaterializeEnhancements
             string[] pathFields={"heightMapPath","diffuseMapPath","diffuseMapOriginalPath","normalMapPath","metallicMapPath","smoothnessMapPath","edgeMapPath","aoMapPath"};
             HashSet<string> paths=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for(int i=0;i<8;i++) {
-                Call(guis[i],"GetValues",po);string name=ExportName(project,Names[i])+"."+extension;
+                Call(guis[i],"GetValues",po);string name=ExportName(project,OutputName(i))+"."+extension;
                 if(!paths.Add(name))throw new ArgumentException("Duplicate export filename: "+name);
                 if(string.Equals(name,Path.GetFileName(path)+".mtz",StringComparison.OrdinalIgnoreCase))throw new ArgumentException("Texture name conflicts with project");
                 Set(po,pathFields[i],Get(Main,MapFields[i])==null?"null":name);
@@ -198,6 +201,8 @@ public static partial class MaterializeEnhancements
             Set(po,"zhInputModes",(int[])InputModes.Clone());Set(po,"zhInputInvert",(bool[])InputInvert.Clone());Set(po,"zhInputSources",PackInputSources());
             Set(po,"zhSessionValues",PackSessionValues());
             Set(po,"zhTextureSize",new int[]{TextureWidth,TextureHeight});
+            Set(po,"zhSourceRoughness",smoothnessSourceRoughness);
+            Set(po,"zhSourceNames",(string[])SourceFileNames.Clone());
             // Stage the complete project before touching an existing project file.
             string file=path+".mtz",temp=file+".writing";
             using(FileStream stream=new FileStream(temp,FileMode.Create,FileAccess.Write))new XmlSerializer(po.GetType()).Serialize(stream,po);
@@ -217,6 +222,7 @@ public static partial class MaterializeEnhancements
     }
     static IEnumerator ExportRoutine(object sl,string path,int format) {
         object main=Get(sl,"mainGui");string project=Path.GetFileName(path),dir=Path.GetDirectoryName(path);string[] names=(string[])Names.Clone();
+        names[5]=OutputName(5);
         for(int i=0;i<8;i++) {
             Texture2D t=Get(main,MapFields[i]) as Texture2D;if(t==null)continue;
             string name=Path.Combine(dir,ExportName(project,names[i]));
@@ -237,29 +243,18 @@ public static partial class MaterializeEnhancements
         string directory=Path.GetDirectoryName(Path.GetFullPath(path));
         Set(sl,"busy",true);
         for(int i=0;i<8;i++) {
-            IEnumerator fallback=null;string temporary=null;
             try {
                 string relative=Get(po,pathFields[i]) as string;if(string.IsNullOrEmpty(relative) || relative=="null")continue;
                 string file=Path.IsPathRooted(relative)?relative:Path.Combine(directory,relative);
-                string ext=Path.GetExtension(file).ToLowerInvariant();
-                if(ext==".png" || ext==".jpg" || ext==".jpeg") {
-                    Texture2D t=new Texture2D(2,2,TextureFormat.RGBA32,false);
-                    if(!t.LoadImage(File.ReadAllBytes(file))){UnityEngine.Object.Destroy(t);throw new InvalidDataException("Cannot decode "+file);}
-                    t.anisoLevel=9;Set(main,MapFields[i],t);
-                } else {
-                    // FreeImage's ANSI entry point cannot reliably open Unicode paths.
-                    bool unicode=false;foreach(char c in file)if(c>127)unicode=true;
-                    if(unicode){temporary=Path.Combine(Application.dataPath,"enhance-import-"+i+ext);File.Copy(file,temporary,true);file=temporary;}
-                    Type mapType=main.GetType().Assembly.GetType("MapType");fallback=Call(sl,"LoadTexture",Enum.Parse(mapType,mapNames[i]),file) as IEnumerator;
-                }
+                // Legacy project files always describe canonical smoothness, regardless of the global mode.
+                Texture2D t=ReadTextureFile(file);Texture2D oldTexture=Get(main,MapFields[i]) as Texture2D;
+                Set(main,MapFields[i],t);DestroyUnusedTexture(oldTexture);
             }catch(Exception e){Error("External texture",e);}
-            if(fallback!=null)yield return ((MonoBehaviour)sl).StartCoroutine(fallback);
-            if(temporary!=null && File.Exists(temporary))File.Delete(temporary);
             yield return null;
         }
         Texture2D previous=Get(main,"_PropertyMap") as Texture2D;if(previous!=null)UnityEngine.Object.Destroy(previous);Set(main,"_PropertyMap",null);
         Call(main,"SetMaterialValues");Call(main,"FixSize");Call(main,"ProcessPropertyMap");
-        Main=main;Bind();RestoreResolution(po);RestoreSessionValues(po);ResetHistory();ProjectLoaded(path);Set(sl,"busy",false);RememberProject(path);
+        Main=main;Bind();RestoreSourceNames(po,false);RestoreResolution(po);RestoreSurfaceWorkflow(po);Call(main,"ProcessPropertyMap");RestoreSessionValues(po);ResetHistory();ProjectLoaded(path);Set(sl,"busy",false);RememberProject(path);
     }
     static IEnumerator RestoreTextures(object sl,object po,string[] embedded,string path) {
         object main=Get(sl,"mainGui");Call(main,"CloseWindows");Texture2D[] decoded=new Texture2D[Math.Min(embedded.Length,9)];bool valid=true;
@@ -276,6 +271,8 @@ public static partial class MaterializeEnhancements
         Texture2D previousProperty=Get(main,"_PropertyMap") as Texture2D;if(previousProperty!=null)UnityEngine.Object.Destroy(previousProperty);
         for(int i=0;i<decoded.Length;i++)Set(main,MapFields[i],decoded[i]);
         Main=main;RestoreInputHistory(inputs,inputModes,inputInvert);
+        RestoreSurfaceWorkflow(po);
+        RestoreSourceNames(po,true);
         string[] names=Get(po,"zhMapNames") as string[];if(names!=null && names.Length==8)Names=(string[])names.Clone();
         int[] channels=Get(po,"zhChannels") as int[];
         if(channels!=null && channels.Length==4) {
@@ -284,7 +281,7 @@ public static partial class MaterializeEnhancements
         }
         // Use the application's own initialization when a generator is opened.
         Call(main,"SetMaterialValues");Call(main,"FixSize");
-        if(decoded.Length<9 || decoded[8]==null)Call(main,"ProcessPropertyMap");
+        Call(main,"ProcessPropertyMap");
         Main=main;Bind();RestoreResolution(po);RestoreSessionValues(po);ResetHistory();ProjectLoaded(path);Set(sl,"busy",false);RememberProject(path);Status=T("已从工程恢复纹理","Textures restored from project");
         yield return null;
     }

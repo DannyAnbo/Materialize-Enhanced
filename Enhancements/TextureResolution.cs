@@ -36,7 +36,7 @@ public static partial class MaterializeEnhancements
             if(!Bind())return false;Commit();if(TextureWidth==width&&TextureHeight==height)return true;
             resizing=true;Call(Main,"CloseWindows");RememberPreviewIndex();
             int oldWidth=TextureWidth,oldHeight=TextureHeight;TextureWidth=width;TextureHeight=height;
-            try {for(int i=0;i<8;i++)if(Get(Main,MapFields[i])!=null)replacements[i]=BuildInputTexture(sourceImages[i],InputModes[i],InputInvert[i]);}
+            try {for(int i=0;i<8;i++)if(Get(Main,MapFields[i])!=null)replacements[i]=BuildMapInput(i);}
             catch {TextureWidth=oldWidth;TextureHeight=oldHeight;throw;}
             for(int i=0;i<8;i++)if(replacements[i]!=null) {
                 Texture2D old=Get(Main,MapFields[i]) as Texture2D;Set(Main,MapFields[i],replacements[i]);sourceTextures[i]=replacements[i];DestroyUnusedTexture(old);replacements[i]=null;
@@ -48,7 +48,7 @@ public static partial class MaterializeEnhancements
     }
     static void RefreshResolutionPreview() {
         Material sample=Get(Main,"SampleMaterial") as Material;
-        if(sample!=null&&previewIndex>=0&&previewIndex<8)sample.SetTexture("_MainTex",Get(Main,MapFields[previewIndex]) as Texture);
+        if(sample!=null&&previewIndex>=0&&previewIndex<8)sample.SetTexture("_MainTex",WorkflowTexture(Get(Main,MapFields[previewIndex]) as Texture2D));
     }
     static void RememberPreviewIndex() {
         Material sample=Get(Main,"SampleMaterial") as Material;if(sample==null)return;
@@ -61,6 +61,8 @@ public static partial class MaterializeEnhancements
             Texture2D texture=Get(Main,MapFields[i]) as Texture2D;
             if(texture==null||(texture.width==TextureWidth&&texture.height==TextureHeight))continue;
             sourceImages[i]=SnapshotImage(texture);InputModes[i]=0;InputInvert[i]=false;
+            SourceFileNames[i]="";
+            if(i==5)smoothnessSourceRoughness=false;
             Texture2D result=ResizeTexture(texture,TextureWidth,TextureHeight);Set(Main,MapFields[i],result);sourceTextures[i]=result;DestroyUnusedTexture(texture);changed=true;
         }
         if(changed){Refresh(true);Call(Main,"ProcessPropertyMap");RefreshResolutionPreview();}

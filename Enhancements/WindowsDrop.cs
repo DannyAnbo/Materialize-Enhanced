@@ -24,8 +24,8 @@ public static partial class MaterializeEnhancements
     [DllImport("shell32.dll",CharSet=CharSet.Unicode)]static extern uint DragQueryFile(IntPtr drop,uint index,StringBuilder file,uint count);
     [DllImport("shell32.dll")]static extern bool DragQueryPoint(IntPtr drop,out NativePoint point);
     [DllImport("shell32.dll")]static extern void DragFinish(IntPtr drop);
-    [DllImport("FreeImage",EntryPoint="FreeImage_Load",CharSet=CharSet.Ansi)]static extern IntPtr DecodeImage(int format,string path,int flags);
-    [DllImport("FreeImage",EntryPoint="FreeImage_Save",CharSet=CharSet.Ansi)]static extern bool ConvertImage(int format,IntPtr image,string path,int flags);
+    [DllImport("FreeImage",EntryPoint="FreeImage_LoadU",CharSet=CharSet.Unicode,ExactSpelling=true)]static extern IntPtr DecodeImage(int format,string path,int flags);
+    [DllImport("FreeImage",EntryPoint="FreeImage_SaveU",CharSet=CharSet.Unicode,ExactSpelling=true)]static extern bool ConvertImage(int format,IntPtr image,string path,int flags);
     [DllImport("FreeImage",EntryPoint="FreeImage_Unload")]static extern void UnloadImage(IntPtr image);
     static IntPtr dropWindow,oldWindowProc;
     static WindowProc dropProc;
@@ -49,7 +49,7 @@ public static partial class MaterializeEnhancements
         // Windows queues key events even when a fast chord falls between Unity frames.
         if(message==0x100&&((long)lParam&0x40000000)==0&&(GetKeyState(0x11)&0x8000)!=0) {
             int key=(int)wParam;
-            if(key==0x53||key==0x5a||key==0x59)nativeShortcut=key|((GetKeyState(0x10)&0x8000)!=0?0x100:0);
+            if(key==0x53||key==0x5a||key==0x59||key==0x4e)nativeShortcut=key|((GetKeyState(0x10)&0x8000)!=0?0x100:0);
         }
         if(!quitting&&(message==0x10||(message==0x112&&((long)wParam&0xfff0)==0xf060))){nativeCloseRequested=true;return IntPtr.Zero;}
         if(message==0x233) {
@@ -85,28 +85,33 @@ public static partial class MaterializeEnhancements
     }
     public static void OpenFile(object main,string path){if(string.IsNullOrEmpty(path))return;Main=main;((MonoBehaviour)main).StartCoroutine(ImportTexture(Get(main,"SaveLoadProjectScript"),Convert.ToInt32(Get(main,"mapTypeToLoad")),path));}
     public static void PasteFile(object main){Main=main;Call(Get(main,"SaveLoadProjectScript"),"PasteFile",Get(main,"mapTypeToLoad"));}
-    public static IEnumerator ImportTexture(object sl,int mapType,string path) {
-        if(importing){Status=T("正在导入，请稍候","Import in progress");yield break;}
-        importing=true;Set(sl,"busy",true);string temporary=null,converted=null;Texture2D texture=null;IntPtr native=IntPtr.Zero;
+    static Texture2D ReadTextureFile(string path) {
+        string ext=Path.GetExtension(path).ToLowerInvariant(),decodePath=path,converted=null;IntPtr native=IntPtr.Zero;Texture2D texture=null;
         try {
-            Main=Get(sl,"mainGui");Bind();Commit();
-            string typeName=Enum.GetName(Main.GetType().Assembly.GetType("MapType"),mapType);int index=Array.IndexOf(MapTypes,typeName);if(index<0)throw new ArgumentException("Unknown texture target");
-            string ext=Path.GetExtension(path).ToLowerInvariant();
-            string decodePath=path;
             if(ext!=".png"&&ext!=".jpg"&&ext!=".jpeg") {
                 if(ext!=".bmp"&&ext!=".tga"&&ext!=".tif"&&ext!=".tiff")throw new InvalidDataException(T("不支持此图片格式","Unsupported image format"));
-                temporary=Path.Combine(Application.dataPath,"enhance-import-"+Guid.NewGuid().ToString("N")+ext);File.Copy(path,temporary);
-                converted=temporary+".png";int format=ext==".bmp"?0:ext==".tga"?17:18;
-                native=DecodeImage(format,temporary,0);if(native==IntPtr.Zero||!ConvertImage(13,native,converted,0))throw new InvalidDataException("Cannot decode "+path);decodePath=converted;
+                // Use Unicode native entry points; the source can be read-only or in a Chinese folder.
+                native=DecodeImage(ext==".bmp"?0:ext==".tga"?17:18,path,0);
+                converted=Path.Combine(Application.dataPath,"enhance-import-"+Guid.NewGuid().ToString("N")+".png");
+                if(native==IntPtr.Zero||!ConvertImage(13,native,converted,0))throw new InvalidDataException("Cannot decode "+path);decodePath=converted;
             }
             texture=new Texture2D(2,2,TextureFormat.RGBA32,false);
             if(!texture.LoadImage(File.ReadAllBytes(decodePath)))throw new InvalidDataException("Cannot decode "+path);
-            texture.anisoLevel=9;
+            texture.anisoLevel=9;return texture;
+        }catch{if(texture!=null)UnityEngine.Object.Destroy(texture);throw;}
+        finally{if(native!=IntPtr.Zero)UnloadImage(native);if(converted!=null&&File.Exists(converted))File.Delete(converted);}
+    }
+    public static IEnumerator ImportTexture(object sl,int mapType,string path) {
+        if(importing){Status=T("正在导入，请稍候","Import in progress");yield break;}
+        importing=true;Set(sl,"busy",true);Texture2D texture=null;
+        try {
+            Main=Get(sl,"mainGui");Bind();Commit();
+            string typeName=Enum.GetName(Main.GetType().Assembly.GetType("MapType"),mapType);int index=Array.IndexOf(MapTypes,typeName);if(index<0)throw new ArgumentException("Unknown texture target");
+            texture=ReadTextureFile(path);
             if(index<8)AdoptImportedTexture(index,texture);else {Set(Main,MapFields[index],texture);Call(Main,"SetLoadedTexture",MapEnum(index));}
+            if(index<8)SourceFileNames[index]=Path.GetFileName(path);
             Commit();Status=T("贴图已导入（可撤销）","Texture imported (undo available)");texture=null;
         }catch(Exception e){DestroyUnusedTexture(texture);Error("Import",e);}finally {
-            if(native!=IntPtr.Zero)UnloadImage(native);
-            foreach(string file in new string[]{temporary,converted})if(file!=null&&File.Exists(file))File.Delete(file);
             Set(sl,"busy",false);importing=false;
         }
         yield break;

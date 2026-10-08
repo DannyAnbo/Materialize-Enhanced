@@ -55,7 +55,7 @@ PASS Property file exported: tga
 PASS Property file exported: tiff
 PASS Old projects still load external texture files
 PASS 4K alpha is correct at first and last pixels
-4K alpha duration milliseconds=101
+4K alpha duration milliseconds=78
 PASS Independent source channel for height
 PASS Independent source channel for diffuse
 PASS Independent source channel for diffuseOriginal
@@ -140,4 +140,65 @@ PASS Project retains native source bytes independently of resized working maps
 PASS 1K preset uses real 1024 by 1024 working maps
 PASS 4K preset uses real 4096 by 4096 working maps
 PASS Earlier projects without size setting retain native dimensions
+PASS Opening an earlier project preserves global roughness preference and clean state
+PASS Global workflow switch preserves canonical data without adding project history or unsaved changes
+PASS Roughness application preference round-trips through local config
+PASS Clean new project clears maps and path while preserving global roughness preference
+PASS New project resets working size, source channel selections and undo history
+PASS Roughness import converts RGB to canonical smoothness and preserves alpha
+PASS Roughness preview reproduces original input bytes
+PASS Full material uses smoothness while texture viewport displays roughness
+PASS Packed roughness channel 1 uses original source with automatic conversion
+PASS Packed roughness channel 2 uses original source with automatic conversion
+PASS Packed roughness channel 3 uses original source with automatic conversion
+PASS Packed roughness channel 4 uses original source with automatic conversion
+PASS User inversion composes correctly with roughness conversion
+PASS Roughness exports are written through the actual export pipeline
+PASS Property map RGBA channels pack roughness values in roughness mode
+PASS Project stores source interpretation without storing the application workflow setting
+PASS Loading a roughness-source project keeps the software's smoothness setting
+PASS Loading regenerates property channels for the current global workflow
+PASS Undo source selection keeps global roughness preference
+PASS Redo source selection keeps global roughness preference and source metadata
+PASS Resize and return to source size do not double-invert roughness inputs
+PASS Default export suffix follows application roughness setting
+PASS Workflow changes preserve custom texture names
+PASS Actual smoothness generator displays inverted roughness without changing shader data
+PASS Actual generator output keeps canonical source interpretation after channel extraction
+PASS Generated smoothness is adopted without roughness-source conversion
+PASS New on modified project shows save-discard-cancel warning
+PASS Cancel new preserves current textures and unsaved modifications
+PASS Discard and New resets project without quitting or changing global setting
+PASS New project clears quick-save paths and previous project object
+PASS Save and New on untitled project opens save dialog before clearing anything
+PASS Cancelled save keeps modified project and new-project warning
+PASS Save and New writes previous changes then restores empty project defaults
+PASS Failed save before New preserves project and does not queue reset
+PASS Global smoothness preference also leaves empty project clean
+PASS Export supports Chinese directory and file name: png
+PASS Chinese path imports actual pixels: png
+PASS Export supports Chinese directory and file name: jpg
+PASS Chinese path imports actual pixels: jpg
+PASS Export supports Chinese directory and file name: tga
+PASS Chinese path imports actual pixels: tga
+PASS Export supports Chinese directory and file name: bmp
+PASS Chinese path imports actual pixels: bmp
+PASS Export supports Chinese directory and file name: tiff
+PASS Chinese path imports actual pixels: tiff
+PASS Open File callback supports Chinese path and extension alias: .tif
+PASS Open File callback supports Chinese path and extension alias: .jpeg
+PASS Drag import route accepts Chinese TGA path for height category
+PASS Imported file names are recorded independently for each texture category
+PASS Custom Chinese texture names export inside a Chinese project directory
+PASS Legacy project loads external Chinese TGA textures while retaining application workflow
+PASS Unicode conversion preserves original source files and leaves no staged files
+PASS Embedded Chinese project reload restores texture pixels and clean state
+PASS Project round-trip retains Chinese source names without storing full paths
+PASS Replacing a texture updates its displayed file name
+PASS Undo import restores the previous file name
+PASS Redo import restores the new file name
+PASS Channel extraction and resize retain the original source file name
+PASS Clearing a texture removes its stale file name
+PASS Undo clear restores texture and file name together
+PASS New project removes all previous source file names
 COMPLETE failures=0
