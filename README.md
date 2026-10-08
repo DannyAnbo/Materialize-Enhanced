@@ -12,6 +12,10 @@ Materialize 1.78 enhanced edition maintained by [DannyAnbo](https://github.com/D
 - 跨模块撤销/重做，支持导入、清除、来源通道、材质与后处理等修改；参数旁单项恢复默认。
 - 拖动图片到对应材质类别导入；每类贴图独立选择整图、R、G、B、A 和反相，适合 ORM 等合并通道。
 - `.mtz` 内嵌工作贴图和原始来源；保存项目不额外导出图片。
+- Ctrl+N 或按钮新建工程，未保存修改可先保存、放弃或取消；新建会重置工程参数和贴图。
+- 增强设置可选默认平滑度/粗糙度，作为软件全局偏好保留，切换工程不改变；导入、预览、属性通道与导出一致。
+- 支持中文纹理文件名、文件夹与安装路径，覆盖 PNG/JPG/TGA/BMP/TIFF、分类拖入与旧版外置工程。
+- 各贴图显示来源文件名，悬停查看完整名称；名称随工程保存并支持撤销。
 - 最近打开项目；Ctrl+S 保存、Ctrl+Shift+S 另存；标题栏显示工程名和未保存标记；关闭时提醒保存。
 - 统一纹理尺寸：256 至 8192 预设、自定义宽高、恢复原始尺寸。工作贴图、视口和导出使用相同实际尺寸；尺寸设置随工程保存，支持撤销。
 - 整理属性贴图 RGBA 面板；关于页面内置维护者头像、Bilibili 与 GitHub 主页。
@@ -20,7 +24,7 @@ Materialize 1.78 enhanced edition maintained by [DannyAnbo](https://github.com/D
 
 ## English
 
-A Windows 1.78 workflow enhancement with live Chinese/English switching, cross-module undo, per-parameter defaults, per-map RGBA source extraction and inversion, drag-and-drop imports, self-contained projects, recent projects, save shortcuts, unsaved-close prompts, project titles and unified texture resolution.
+A Windows 1.78 workflow enhancement with live Chinese/English switching, cross-module undo, per-parameter defaults, per-map RGBA source extraction and inversion, drag-and-drop imports, self-contained projects, recent projects, save shortcuts, unsaved-close prompts, project titles, unified texture resolution, Ctrl+N new projects, persistent application-wide smoothness/roughness workflow and Unicode texture paths.
 
 Extract the portable release and run `Materialize.exe`. The texture resolution selector applies to actual working maps, viewport textures and exports. Native sources are retained for later resizing and channel selection. Upscaling cannot add detail.
 
