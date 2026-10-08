@@ -1,5 +1,7 @@
 # Materialize Enhanced
 
+![Materialize Enhanced — 材质工具实用升级](materialize-enhanced-cover.jpg)
+
 Materialize 1.78 enhanced edition maintained by [DannyAnbo](https://github.com/DannyAnbo). Based on [Materialize by Bounding Box Software](https://github.com/BoundingBoxSoftware/Materialize).
 
 **[Download the Windows portable release](https://github.com/DannyAnbo/Materialize-Enhanced/releases/latest)** · [中文使用说明](Enhancements/USER_GUIDE.zh-CN.txt) · [Build instructions](Enhancements/README.md)
