@@ -1,0 +1,126 @@
+[
+  {
+    "format": "png",
+    "mode": "RGBA",
+    "size": [
+      16,
+      16
+    ],
+    "rgba_exact": true,
+    "alpha_exact": true
+  },
+  {
+    "format": "tga",
+    "mode": "RGBA",
+    "size": [
+      16,
+      16
+    ],
+    "rgba_exact": true,
+    "alpha_exact": true
+  },
+  {
+    "format": "tiff",
+    "mode": "RGBA",
+    "size": [
+      16,
+      16
+    ],
+    "rgba_exact": true,
+    "alpha_exact": true
+  },
+  {
+    "format": "tga",
+    "unicode_name": true,
+    "mode": "RGBA",
+    "rgba_exact": true
+  },
+  {
+    "format": "tiff",
+    "unicode_name": true,
+    "mode": "RGBA",
+    "rgba_exact": true
+  },
+  {
+    "format": "bmp",
+    "unicode_name": true,
+    "mode": "RGB",
+    "rgba_exact": true
+  },
+  {
+    "channel": "R",
+    "grayscale_exact": true
+  },
+  {
+    "channel": "G",
+    "grayscale_exact": true
+  },
+  {
+    "channel": "B",
+    "grayscale_exact": true
+  },
+  {
+    "channel": "A",
+    "grayscale_exact": true
+  },
+  {
+    "channel": "G",
+    "inversion_exact": true
+  },
+  {
+    "check": "raw RGBA bilinear resampling",
+    "size": [
+      32,
+      24
+    ],
+    "max_channel_error": 1
+  },
+  {
+    "format": "png",
+    "check": "selected export resolution",
+    "size": [
+      64,
+      40
+    ]
+  },
+  {
+    "format": "tga",
+    "check": "selected export resolution",
+    "size": [
+      64,
+      40
+    ]
+  },
+  {
+    "format": "tiff",
+    "check": "selected export resolution",
+    "size": [
+      64,
+      40
+    ]
+  },
+  {
+    "format": "jpg",
+    "check": "selected export resolution",
+    "size": [
+      64,
+      40
+    ]
+  },
+  {
+    "format": "bmp",
+    "check": "selected export resolution",
+    "size": [
+      64,
+      40
+    ]
+  },
+  {
+    "format": "png",
+    "check": "real 4K export",
+    "size": [
+      4096,
+      4096
+    ]
+  }
+]

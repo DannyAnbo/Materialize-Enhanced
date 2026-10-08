@@ -1,0 +1,143 @@
+PASS Undo restores previous parameter
+PASS Redo survives subsequent update frames
+PASS One parameter resets without changing others
+PASS Default reset itself is undoable
+PASS Redo default reset
+PASS Numeric input accepts values outside range
+PASS Original range switch
+PASS Duplicate names rejected
+PASS Dots in folder and project name preserved
+PASS Undo spans material and post-process modules
+PASS Post-process redo
+PASS Post-process single default preserves material values
+PASS Live switch translates cached Chinese labels to English
+PASS Live language switch preserves textures and edits
+PASS Property R channel selection undo
+PASS Property R channel selection redo
+PASS Property alpha selection undo
+PASS Export format menu undo
+PASS Post-process checkbox undo
+PASS Replacing module settings does not erase history
+PASS Native Windows file drop receiver installed
+PASS Eight separate drop targets including source and edited diffuse
+PASS Unicode image import reaches the requested map slot
+PASS Undo import restores previous texture pixels
+PASS Import redo survives subsequent frames
+PASS Undo clear restores both diffuse maps
+PASS Undo captures in-place normal-map pixel edits
+PASS Opening another module keeps prior parameter history
+PASS Unicode tga import reaches metallic slot pixel-exactly
+PASS Unicode tiff import reaches metallic slot pixel-exactly
+PASS Unicode bmp import reaches metallic slot pixel-exactly
+PASS Cubemap menu undo
+PASS Undo clear all restores eight texture slots
+PASS Save dialog accepts new filenames and warns before overwriting
+PASS Load dialog requires an existing project
+PASS Cancel save or export does not write files or report an error
+PASS Single-map save preserves dots in asset names
+PASS Preview shape undo restores its shader projection mode
+PASS Property map uses RGBA32
+PASS Height copied to alpha for every pixel
+PASS AO plus edge matches shader formula within 8-bit rounding
+PASS None produces opaque alpha
+PASS Different texture sizes resample safely
+PASS Self-contained project saved
+PASS Saving embedded project creates no external images
+PASS Embedded images, names and RGBA selections serialized
+PASS Exactly eight textures exported
+PASS Custom Unicode names used by actual exported files
+PASS All eight textures restored pixel-exactly without external files
+PASS Alpha selection restored from project
+PASS Property map also restored with alpha
+PASS Atomic overwrite of an existing project
+PASS Property file exported: png
+PASS Property file exported: tga
+PASS Property file exported: tiff
+PASS Old projects still load external texture files
+PASS 4K alpha is correct at first and last pixels
+4K alpha duration milliseconds=101
+PASS Independent source channel for height
+PASS Independent source channel for diffuse
+PASS Independent source channel for diffuseOriginal
+PASS Independent source channel for normal
+PASS Independent source channel for metallic
+PASS Independent source channel for smoothness
+PASS Independent source channel for edge
+PASS Independent source channel for ao
+PASS Switch to R always samples original packed texture
+PASS Switch to G always samples original packed texture
+PASS Switch to B always samples original packed texture
+PASS Switch to A always samples original packed texture
+PASS Full image restores all original RGBA bytes
+PASS Full material uses the newly selected texture channel
+PASS Alpha extraction survives Unicode tga import
+PASS Alpha extraction survives Unicode tiff import
+PASS Inverted G yields exact roughness-to-smoothness values
+PASS Undo restores source-channel choice and pixels
+PASS Source-channel redo survives later frames
+PASS Original packed channels remain selectable after undo and redo
+PASS Property-map packing reads the extracted source channel
+PASS Import uses the channel selected before loading a texture
+PASS Undo import preserves the preselected source channel
+PASS Redo import restores raw source and extracted pixels
+PASS Channel project embeds original sources without exporting sidecar textures
+PASS Portable project restores all eight channel choices, inversions and pixels
+PASS Portable project retains every original channel for later reselection
+PASS New generated texture becomes a fresh full-image source
+PASS Undo generation restores the previous packed original
+PASS In-place pixel edits become the source for later channel selection
+PASS Earlier embedded projects load with full-image source defaults
+PASS Recent list starts empty and uses isolated test storage
+PASS Saving without opening does not enter recently opened list
+PASS Successful load records absolute Unicode path with dots
+PASS Project drag loading enters newest-first recent list
+PASS Reopening from recent list moves project to top without duplicate
+PASS Recent entry restores embedded pixels and original channel selection
+PASS Path deduplication is case-insensitive on Windows
+PASS Cancelled load leaves recent list and current texture unchanged
+PASS Invalid XML is not recorded and leaves current texture intact
+PASS Missing recent project fails safely without modifying list or texture
+PASS Recent paths and order survive reloading persisted storage
+PASS Failed embedded-image load is not recorded and releases loading state
+PASS Completed legacy external-texture project enters recent list
+PASS Recent list retains newest 12 successful opens
+PASS Missing files retain their recorded position for the missing-file UI
+PASS Malformed history rows and duplicate entries do not prevent reading valid history
+PASS Persisted recent list leaves no incomplete staging file
+PASS History reader skips bad rows, nonprojects and duplicates while preserving order
+PASS Successful recent load returns to ready state
+PASS Save sets current project path and clean state
+PASS Changing a material parameter marks project unsaved
+PASS Undo back to the saved state clears unsaved marker
+PASS Redo after the saved state restores unsaved marker
+PASS Save current overwrites tracked project without a browser and saves extra settings
+PASS Save As always opens a filename dialog
+PASS Save As changes current path and preserves previous project
+PASS Save on untitled project opens a filename dialog
+PASS Successful load sets active path and clean baseline
+PASS Post-process changes mark project unsaved
+PASS Saved project restores post-process settings and is clean
+PASS Closing a modified project shows unsaved warning
+PASS Cancel close preserves unsaved project and app state
+PASS Failed save preserves current path and dirty state
+PASS Save and Close on untitled project waits for save dialog
+PASS Cancelling close-save does not discard work or quit
+PASS Global slider-range preference does not dirty a saved project
+PASS Author avatar is embedded in runtime assembly
+PASS Native close and file-drop window hook is installed
+PASS Changing resolution resizes all eight maps and property map
+PASS Viewport preview and full material use the resized working texture
+PASS Undo restores native resolution and working image
+PASS Redo restores requested resolution and every map
+PASS Invalid resolutions leave all textures intact
+PASS Source channel reselection keeps selected working resolution
+PASS Returning to native size preserves original RGBA bytes after resizing and channel changes
+PASS Import under a selected resolution uses that size in working textures
+PASS Actual normal-map generator renders at the selected working resolution
+PASS All five supported export formats are written at selected resolution
+PASS Embedded project restores requested resolution, textures and clean state
+PASS Project retains native source bytes independently of resized working maps
+PASS 1K preset uses real 1024 by 1024 working maps
+PASS 4K preset uses real 4096 by 4096 working maps
+PASS Earlier projects without size setting retain native dimensions
+COMPLETE failures=0
