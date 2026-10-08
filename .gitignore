@@ -34,3 +34,16 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+# Enhancement build and local data
+!Enhancements/EnhanceBuild.csproj
+Enhancements/bin/
+Enhancements/obj/
+Enhancements/artifacts/
+Enhancements/translations.tsv
+*.mtz
+recent_projects.txt
+zh_config.txt
+enhance-*.log
+tempPreview.png
+tempThumb.png
