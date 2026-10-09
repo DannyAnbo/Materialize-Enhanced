@@ -1,4 +1,4 @@
-﻿Shader "Custom/Edit_Diffuse_Preview" {
+Shader "Custom/Edit_Diffuse_Preview" {
 	Properties {
 		_MainTex ("Base (RGB)", 2D) = "white" {}
 		_BlurTex ("Base (RGB)", 2D) = "white" {}
@@ -87,11 +87,11 @@
 				mainTex = lerp( mainTex, avgColor, 1.0 - ( 1.0 - lightMask ) * darkMask );
 
 				// Lighting removal
-				float lightMaskPow = saturate( ( _LightMaskPow - 0.5 ) * 2.0 ) + 1.0;
-				lightMaskPow -= 1.0 - ( 1.0 / ( saturate( ( _LightMaskPow - 0.5 ) * -2.0 ) + 1.0) );
+				float lightMaskPow = max( 0.0, ( _LightMaskPow - 0.5 ) * 2.0 ) + 1.0;
+				lightMaskPow -= 1.0 - ( 1.0 / ( max( 0.0, ( _LightMaskPow - 0.5 ) * -2.0 ) + 1.0) );
 
-				float darkMaskPow = saturate( ( _DarkMaskPow - 0.5 ) * 2.0 ) + 1;
-				darkMaskPow -= 1.0 - ( 1.0 / ( saturate( ( _DarkMaskPow - 0.5 ) * -2.0 ) + 1.0) );
+				float darkMaskPow = max( 0.0, ( _DarkMaskPow - 0.5 ) * 2.0 ) + 1;
+				darkMaskPow -= 1.0 - ( 1.0 / ( max( 0.0, ( _DarkMaskPow - 0.5 ) * -2.0 ) + 1.0) );
 
 				mainTex = ( mainTex - avgColor);
 				half mainTexGrey = mainTex.x * 0.3 + mainTex.y * 0.5 + mainTex.z * 0.2;
@@ -220,11 +220,11 @@
 				mainTex = lerp( mainTex, avgColor, 1.0 - ( 1.0 - lightMask ) * darkMask );
 
 				// Lighting removal
-				float lightMaskPow = saturate( ( _LightMaskPow - 0.5 ) * 2.0 ) + 1.0;
-				lightMaskPow -= 1.0 - ( 1.0 / ( saturate( ( _LightMaskPow - 0.5 ) * -2.0 ) + 1.0) );
+				float lightMaskPow = max( 0.0, ( _LightMaskPow - 0.5 ) * 2.0 ) + 1.0;
+				lightMaskPow -= 1.0 - ( 1.0 / ( max( 0.0, ( _LightMaskPow - 0.5 ) * -2.0 ) + 1.0) );
 
-				float darkMaskPow = saturate( ( _DarkMaskPow - 0.5 ) * 2.0 ) + 1;
-				darkMaskPow -= 1.0 - ( 1.0 / ( saturate( ( _DarkMaskPow - 0.5 ) * -2.0 ) + 1.0) );
+				float darkMaskPow = max( 0.0, ( _DarkMaskPow - 0.5 ) * 2.0 ) + 1;
+				darkMaskPow -= 1.0 - ( 1.0 / ( max( 0.0, ( _DarkMaskPow - 0.5 ) * -2.0 ) + 1.0) );
 
 				mainTex = ( mainTex - avgColor);
 				half mainTexGrey = mainTex.x * 0.3 + mainTex.y * 0.5 + mainTex.z * 0.2;
