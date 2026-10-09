@@ -1,4 +1,4 @@
-﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
+// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
 Shader "Hidden/Blit_Seamless_Texture_Maker" {
 	Properties {
@@ -109,8 +109,8 @@ Shader "Hidden/Blit_Seamless_Texture_Maker" {
 		half4 mainTex3 = tex2Dlod(_MainTex, float4( UV3, 0, 0 ) );
 		half4 mainTex4 = tex2Dlod(_MainTex, float4( UV4, 0, 0 ) );
 
-		half SSHigh =  0.01 + ( 0.5 * saturate( _Falloff ) );
-		half SSLow =  -0.01 - ( 0.5 * saturate( _Falloff ) );
+		half SSHigh =  0.01 + ( 0.5 * max( 0.0, _Falloff ) );
+		half SSLow =  -0.01 - ( 0.5 * max( 0.0, _Falloff ) );
 		half TexBlend = smoothstep( SSLow, SSHigh, ( heightTex2 + UVMask.x ) - ( heightTex + ( 1.0 - UVMask.x ) ) );
 		
 		
@@ -174,8 +174,8 @@ Shader "Hidden/Blit_Seamless_Texture_Maker" {
 			half heightTex = tex2Dlod(_HeightTex, float4( localPos.xy, 0, 0 ) ).x;
 			half4 thisTex = tex2Dlod(_MainTex, float4( localPos.xy, 0, 0 ) );
 			
-			half SSHigh =  0.01 + ( 0.5 * saturate( _Falloff ) );
-			half SSLow =  -0.01 - ( 0.5 * saturate( _Falloff ) );
+			half SSHigh =  0.01 + ( 0.5 * max( 0.0, _Falloff ) );
+			half SSLow =  -0.01 - ( 0.5 * max( 0.0, _Falloff ) );
 			if( _IsHeight > 0.5 ){
 				SSHigh =  0.01 + 0.25;
 				SSLow =  -0.01 - 0.25;
