@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
@@ -22,11 +22,11 @@ public static partial class MaterializeEnhancements
     static bool SameProject(EditState a,EditState b) {
         if(a==null||b==null||a.alpha!=b.alpha||a.sourceRoughness!=b.sourceRoughness||a.width!=b.width||a.height!=b.height||!SameValues(a.values,b.values)||!SameValues(a.extras,b.extras))return false;
         for(int i=0;i<8;i++)if(!object.ReferenceEquals(a.maps[i],b.maps[i]))return false;
-        for(int i=0;i<8;i++)if(a.names[i]!=b.names[i]||a.sourceNames[i]!=b.sourceNames[i]||a.inputModes[i]!=b.inputModes[i]||a.inputInvert[i]!=b.inputInvert[i]||!object.ReferenceEquals(a.sources[i],b.sources[i]))return false;
+        for(int i=0;i<8;i++)if(a.names[i]!=b.names[i]||a.sourceNames[i]!=b.sourceNames[i]||!object.ReferenceEquals(a.reload[i],b.reload[i])||a.reloadRough[i]!=b.reloadRough[i]||a.inputModes[i]!=b.inputModes[i]||a.inputInvert[i]!=b.inputInvert[i]||!object.ReferenceEquals(a.sources[i],b.sources[i]))return false;
         return true;
     }
     static void UpdateProjectDirty(EditState state) {
-        if(!sessionReady){sessionReady=true;savedProject=state;newProjectDefaults=state;}
+        if(!sessionReady){sessionReady=true;savedProject=state;}
         ProjectDirty=!SameProject(state,savedProject);
     }
     static void ProjectSaved(string path) {
@@ -68,7 +68,7 @@ public static partial class MaterializeEnhancements
     static void SessionTick(bool browsing) {
         UpdateProjectTitle();
         int shortcut=nativeShortcut;nativeShortcut=0;
-        if(shortcut!=0&&!browsing&&!windowOpen&&!closePrompt&&!quitting&&!openAbout&&!openResolution) {
+        if(shortcut!=0&&!browsing&&!windowOpen&&!closePrompt&&!quitting&&!openAbout&&!openResolution&&!openExport&&editingIndex<0) {
             int key=shortcut&0xff;
             if(key==0x53)SaveCurrentProject((shortcut&0x100)!=0);
             else if(key==0x4e)RequestNewProject();

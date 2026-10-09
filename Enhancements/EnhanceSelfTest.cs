@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Collections;
@@ -114,6 +114,7 @@ public static class EnhanceSelfTest
         yield return ((MonoBehaviour)main).StartCoroutine(ResolutionSelfTest.Run(main,output,Check));
         yield return ((MonoBehaviour)main).StartCoroutine(WorkflowSelfTest.Run(main,output,Check));
         yield return ((MonoBehaviour)main).StartCoroutine(UnicodeSelfTest.Run(main,output,Check));
+        yield return ((MonoBehaviour)main).StartCoroutine(V7SelfTest.Run(main,output,Check));
         report.AppendLine("COMPLETE failures="+failures);File.WriteAllText(Path.Combine(output,"runtime-tests.txt"),report.ToString());
         MaterializeEnhancements.Status="Runtime checks complete: "+failures+" failures";
     }

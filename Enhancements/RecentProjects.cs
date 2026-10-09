@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
@@ -46,6 +46,7 @@ public static partial class MaterializeEnhancements
 
     // Existing MonoBehaviour method delegates here; its serialized layout stays intact.
     public static void LoadProject(object sl,string path) {
+        CloseMapEditor();openExport=false;
         if(string.IsNullOrEmpty(path))return;
         try {
             if(Convert.ToBoolean(Get(sl,"busy"))||importing){Status=T("正在加载，请稍候","Loading in progress");return;}

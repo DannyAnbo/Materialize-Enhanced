@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
@@ -52,6 +52,10 @@ po.Fields.Add(new FieldDefUser("zhSessionValues",new FieldSig(new SZArraySig(mod
 po.Fields.Add(new FieldDefUser("zhTextureSize",new FieldSig(new SZArraySig(mod.CorLibTypes.Int32)),FieldAttributes.Public));
 po.Fields.Add(new FieldDefUser("zhSourceRoughness",new FieldSig(mod.CorLibTypes.Boolean),FieldAttributes.Public));
 po.Fields.Add(new FieldDefUser("zhSourceNames",new FieldSig(new SZArraySig(mod.CorLibTypes.String)),FieldAttributes.Public));
+po.Fields.Add(new FieldDefUser("zhReloadSources",new FieldSig(new SZArraySig(mod.CorLibTypes.String)),FieldAttributes.Public));
+po.Fields.Add(new FieldDefUser("zhReloadRough",new FieldSig(new SZArraySig(mod.CorLibTypes.Boolean)),FieldAttributes.Public));
+Replace(M("TilingTextureMakerGui","OnGUI"),"DrawTiling");
+Replace(M("TilingTextureMakerGui","Update"),"UpdateTiling");
 Prefix(M("MainGui","Update"),Instruction.Create(OpCodes.Ldarg_0),Instruction.Create(OpCodes.Call,H("Tick")));
 Replace(M("MainGui","OnGUI"),"Draw");
 Replace(M("MainGui","OpenFile"),"OpenFile");

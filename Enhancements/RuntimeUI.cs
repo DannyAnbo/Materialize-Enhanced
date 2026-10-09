@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ public static partial class MaterializeEnhancements
         }
         openChannel=-1;openInput=-1;openRecent=false;
     }
-    public static void ExportFiles(string path){if(!string.IsNullOrEmpty(path))ExportAll(Get(Main,"SaveLoadProjectScript"),path,Convert.ToInt32(Get(Main,"selectedFormat")));}
+    public static void ExportFiles(string path){if(!string.IsNullOrEmpty(path))ExportSelected(Get(Main,"SaveLoadProjectScript"),path,Convert.ToInt32(Get(Main,"selectedFormat")),exportSelected);}
     static void SaveMap(int index,bool quick) {
         if(index==8)Call(Main,"ProcessPropertyMap");
         Set(Main,"textureToSave",Get(Main,MapFields[index]));Set(Main,"mapType",index==8?"_msao":OutputName(index));
@@ -85,7 +85,7 @@ public static partial class MaterializeEnhancements
         GUI.backgroundColor=Color.white;
     }
     static void DrawCard(int column,int index,string title) {
-        float x=12+column*118,y=54;GUI.Box(new Rect(x,y,110,236),title,solidPanel);
+        float x=12+column*118,y=54;GUI.Box(new Rect(x,y,110,262),title,solidPanel);
         Texture2D image=WorkflowTexture(Get(Main,MapFields[index]) as Texture2D);
         if(column==1) {
             GUI.Label(new Rect(x+5,y+21,50,19),T("原图","Source"));GUI.Label(new Rect(x+57,y+21,50,19),T("结果","Result"));
@@ -113,11 +113,14 @@ public static partial class MaterializeEnhancements
         if(GUI.Button(new Rect(x+10,y+157,90,22),T("快速保存","Quick Save")))SaveMap(column==1&&Get(Main,"_DiffuseMap")!=null?1:index,true);
         GUI.enabled=image!=null;
         if(GUI.Button(new Rect(x+10,y+184,90,22),T("预览","Preview")))Call(Main,"SetLoadedTexture",MapEnum(column==1&&Get(Main,"_DiffuseMap")!=null?1:index));
-        GUI.enabled=column==1?Get(Main,"_DiffuseMapOriginal")!=null:column==0?(Get(Main,"_DiffuseMapOriginal")!=null||Get(Main,"_DiffuseMap")!=null||Get(Main,"_NormalMap")!=null):column==2?Get(Main,"_HeightMap")!=null:column<=4?(Get(Main,"_DiffuseMapOriginal")!=null||Get(Main,"_DiffuseMap")!=null):(Get(Main,"_NormalMap")!=null||Get(Main,"_HeightMap")!=null);
-        if(GUI.Button(new Rect(x+5,y+211,48,20),T("编辑","Create")))OpenGenerator(column);
+        int editIndex=column==1?(Get(Main,"_DiffuseMap")!=null?1:2):index;
+        bool existing=Get(Main,MapFields[editIndex])!=null;
+        GUI.enabled=existing||(column==1?Get(Main,"_DiffuseMapOriginal")!=null:column==0?(Get(Main,"_DiffuseMapOriginal")!=null||Get(Main,"_DiffuseMap")!=null||Get(Main,"_NormalMap")!=null):column==2?Get(Main,"_HeightMap")!=null:column<=4?(Get(Main,"_DiffuseMapOriginal")!=null||Get(Main,"_DiffuseMap")!=null):(Get(Main,"_NormalMap")!=null||Get(Main,"_HeightMap")!=null));
+        if(GUI.Button(new Rect(x+5,y+211,48,20),existing?T("编辑","Edit"):T("生成","Create"))){if(existing)OpenMapEditor(editIndex);else {CloseMapEditor();OpenGenerator(column);}}
         GUI.enabled=image!=null;
         if(GUI.Button(new Rect(x+57,y+211,48,20),T("清除","Clear"))){Commit();Call(Main,"ClearTexture",MapEnum(column==1?1:index));Call(Main,"CloseWindows");Call(Main,"SetMaterialValues");Call(Main,"FixSize");Commit();}
-        GUI.enabled=true;
+        GUI.enabled=reloadImages[editIndex]!=null;
+        if(GUI.Button(new Rect(x+5,y+235,100,22),T("重新加载","Reload")))ReloadTexture(editIndex);GUI.enabled=true;
     }
     public static void Draw(object main) {
         Matrix4x4 matrix=GUI.matrix;int depth=GUI.depth;bool enabled=GUI.enabled;
@@ -139,13 +142,13 @@ public static partial class MaterializeEnhancements
             if(GUI.Button(new Rect(504,12,108,30),new GUIContent(T("保存项目","Save Project"),T("Ctrl+S 保存；Ctrl+Shift+S 另存为","Ctrl+S Save; Ctrl+Shift+S Save As"))))SaveCurrentProject(false);
             if(GUI.Button(new Rect(620,12,108,30),T("加载项目","Load Project")))Browse(T("加载项目","Load Project"),"LoadProject",true);
             if(GUI.Button(new Rect(736,12,92,30),T("最近项目 ▾","Recent ▾"))){openRecent=!openRecent;openChannel=-1;openInput=-1;windowOpen=false;recentScroll=Vector2.zero;}
-            if(GUI.Button(new Rect(836,12,136,30),T("导出全部贴图","Export All Maps")))Browse(T("导出全部贴图","Export All Maps"),"ExportFiles",true);
+            if(GUI.Button(new Rect(836,12,136,30),T("导出贴图…","Export Maps…")))OpenExportSelection();
             if(GUI.Button(new Rect(980,12,92,30),T("关于我","About"))){openAbout=!openAbout;openRecent=false;windowOpen=false;openInput=-1;openChannel=-1;}
             if(GUI.Button(new Rect(w-112,12,100,30),T("隐藏界面","Hide UI"))){Set(main,"hideGui",true);Call(main,"HideWindows");}
             int[] indices={0,1,3,4,5,6,7};string[] titles=English?new string[]{"Height","Diffuse","Normal","Metallic","Smoothness","Edge","AO"}:new string[]{"高度贴图","漫反射贴图","法线贴图","金属度贴图","平滑度贴图","边缘贴图","AO 贴图"};
             titles[4]=SurfaceLabel+T("贴图","");
             for(int i=0;i<7;i++)DrawCard(i,indices[i],titles[i]);
-            float px=850;GUI.Box(new Rect(px,54,330,236),T("保存格式与属性贴图 RGBA","Export Format / Property Map RGBA"),solidPanel);
+            float px=850;GUI.Box(new Rect(px,54,330,262),T("保存格式与属性贴图 RGBA","Export Format / Property Map RGBA"),solidPanel);
             string[] formats={"BMP","JPG","PNG","TGA","TIFF"};int current=Convert.ToInt32(Get(main,"selectedFormat"));
             for(int i=0;i<5;i++){GUI.backgroundColor=current==i?new Color(0.4f,0.7f,0.9f):Color.white;if(GUI.Button(new Rect(px+10+i*62,80,58,23),formats[i])){Commit();Call(main,"SetFormat",Enum.ToObject(Get(main,"selectedFormat").GetType(),i));Commit();}}GUI.backgroundColor=Color.white;
             for(int i=0;i<4;i++) {
@@ -159,16 +162,16 @@ public static partial class MaterializeEnhancements
             GUI.enabled=!string.IsNullOrEmpty(Get(main,"QuicksavePathProperty") as string);
             if(GUI.Button(new Rect(px+173,241,147,28),T("快速保存属性图","Quick Save Property")))SaveMap(8,true);GUI.enabled=true;
             DrawTextureName(new Rect(px+10,271,310,19),8,Get(main,"_PropertyMap") as Texture2D);
-            float ax=350,ay=302;
+            float ax=350,ay=328;
             if(GUI.Button(new Rect(ax,ay,100,32),T("后处理","Post Process"))){GameObject o=(GameObject)Get(main,"PostProcessGuiObject");o.SetActive(!o.activeSelf);}
             if(GUI.Button(new Rect(ax+108,ay,132,32),T("显示完整材质","Full Material")))Call(main,"ShowFullMaterial");
             if(GUI.Button(new Rect(ax+248,ay,105,32),T("下一张环境图","Next Cubemap"))){Commit();Array cubes=(Array)Get(main,"CubeMaps");Set(main,"selectedCubemap",(Convert.ToInt32(Get(main,"selectedCubemap"))+1)%cubes.Length);Call(main,"SetMaterialValues");Call(Get(main,"reflectionProbe"),"RenderProbe");Commit();}
-            GUI.enabled=Get(main,"_HeightMap")!=null;
-            if(GUI.Button(new Rect(ax+361,ay,82,32),T("纹理平铺","Tile Maps"))){Call(main,"CloseWindows");Call(main,"FixSize");((GameObject)Get(main,"TilingTextureMakerGuiObject")).SetActive(true);Call(Get(main,"TilingTextureMakerGuiScript"),"Initialize");}GUI.enabled=true;
+            GUI.enabled=HasMaps();
+            if(GUI.Button(new Rect(ax+361,ay,82,32),T("纹理平铺","Tile Maps")))OpenTiling();GUI.enabled=true;
             if(GUI.Button(new Rect(ax+451,ay,90,32),T("调整对齐","Alignment"))){Call(main,"CloseWindows");Call(main,"FixSize");Call(Get(main,"AlignmentGuiScript"),"Initialize");}
             GUI.enabled=Get(main,"_NormalMap")!=null;if(GUI.Button(new Rect(ax+549,ay,105,32),T("翻转法线 Y","Flip Normal Y"))){Commit();Call(main,"FlipNormalMapY");Commit();}GUI.enabled=true;
             if(GUI.Button(new Rect(ax+662,ay,128,32),T("清除全部贴图","Clear All Maps")))confirmClear=!confirmClear;
-            if(GUI.Button(new Rect(12,302,320,32),T("纹理尺寸：","Texture Size: ")+(TextureWidth==0?T("原始尺寸","Source sizes"):TextureWidth+" × "+TextureHeight)+" ▾")){openResolution=!openResolution;openRecent=false;openAbout=false;openChannel=-1;openInput=-1;windowOpen=false;}
+            if(GUI.Button(new Rect(12,328,320,32),T("纹理尺寸：","Texture Size: ")+(TextureWidth==0?T("原始尺寸","Source sizes"):TextureWidth+" × "+TextureHeight)+" ▾")){openResolution=!openResolution;openRecent=false;openAbout=false;openChannel=-1;openInput=-1;windowOpen=false;}
             if(confirmClear){GUI.Box(new Rect(ax+662,ay+38,150,70),T("清除全部贴图？","Clear all maps?"));if(GUI.Button(new Rect(ax+672,ay+70,60,25),T("确定","Yes"))){Commit();Call(main,"ClearAllTextures");Call(main,"CloseWindows");Call(main,"SetMaterialValues");Commit();confirmClear=false;}if(GUI.Button(new Rect(ax+740,ay+70,60,25),T("取消","No")))confirmClear=false;}
             if(openChannel>=0){channelWindow=GUI.Window(8180,channelWindow,DrawChannels,T("选择通道来源","Channel Source"),solidWindow);GUI.BringWindowToFront(8180);}
             if(openInput>=0){inputWindow=GUI.Window(8181,inputWindow,DrawInputChannels,SurfaceName(openInput)+T("：来源通道"," / Source Channel"),solidWindow);GUI.BringWindowToFront(8181);}
@@ -176,6 +179,8 @@ public static partial class MaterializeEnhancements
             if(openRecent)DrawRecentProjects(w,Screen.height/uiScale);
             if(openAbout)DrawAbout(w,Screen.height/uiScale);
             if(openResolution)DrawResolution(w,Screen.height/uiScale);
+            if(editingIndex>=0)DrawMapEditor(w,Screen.height/uiScale);
+            if(openExport)DrawExportSelection(w,Screen.height/uiScale);
             DrawTextureNameHint(w,Screen.height/uiScale);
             GUI.matrix=matrix;
             string projectLabel=T("当前工程：","Project: ")+(CurrentProjectPath.Length==0?T("未命名工程","Untitled"):CurrentProjectPath)+(ProjectDirty?T("  * 未保存","  * Unsaved"):"");

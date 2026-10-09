@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 public static partial class MaterializeEnhancements
@@ -34,7 +34,7 @@ public static partial class MaterializeEnhancements
     }
     static void ClearSurfaceDisplay(){if(roughnessDisplay!=null)UnityEngine.Object.Destroy(roughnessDisplay);roughnessDisplay=null;roughnessDisplaySource=null;}
     static void RefreshWorkflowPreview() {
-        if(previewIndex!=5)return;
+        if(previewIndex!=5||editingIndex>=0||((GameObject)Get(Main,"TilingTextureMakerGuiObject")).activeSelf)return;
         Material sample=Get(Main,"SampleMaterial") as Material;
         if(sample!=null)sample.SetTexture("_MainTex",WorkflowTexture(Get(Main,"_SmoothnessMap") as Texture2D)??(Get(Main,"_TextureGrey") as Texture));
     }

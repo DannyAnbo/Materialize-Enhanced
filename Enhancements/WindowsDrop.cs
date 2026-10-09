@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Collections;
@@ -77,7 +77,7 @@ public static partial class MaterializeEnhancements
     public static int DropTarget(Vector2 point){for(int i=0;i<8;i++)if(dropRects[i].Contains(point))return i;return -1;}
     public static void HandleDrop(string[] files,Vector2 logicalPoint) {
         if(files==null||files.Length==0)return;
-        if(Convert.ToBoolean(Get(Main,"hideGui"))||windowOpen||openRecent||openResolution||closePrompt||openAbout||openChannel>=0||openInput>=0||Convert.ToBoolean(Get(Get(Main,"fileBrowser"),"isActive"))){Status=T("请先关闭对话框，再拖入贴图","Close the dialog before dropping textures");return;}
+        if(Convert.ToBoolean(Get(Main,"hideGui"))||windowOpen||openRecent||openResolution||closePrompt||openAbout||openExport||editingIndex>=0||openChannel>=0||openInput>=0||Convert.ToBoolean(Get(Get(Main,"fileBrowser"),"isActive"))){Status=T("请先关闭对话框，再拖入贴图","Close the dialog before dropping textures");return;}
         if(files.Length!=1){Status=T("每次请拖入一张贴图到目标缩略图区","Drop one texture at a time onto its thumbnail");return;}
         if(files[0].EndsWith(".mtz",StringComparison.OrdinalIgnoreCase)){Call(Get(Main,"SaveLoadProjectScript"),"LoadProject",files[0]);return;}
         int index=DropTarget(logicalPoint);if(index<0){Status=T("请将文件拖到对应贴图的缩略图区","Drop the file onto the target texture thumbnail");return;}
@@ -108,7 +108,7 @@ public static partial class MaterializeEnhancements
             Main=Get(sl,"mainGui");Bind();Commit();
             string typeName=Enum.GetName(Main.GetType().Assembly.GetType("MapType"),mapType);int index=Array.IndexOf(MapTypes,typeName);if(index<0)throw new ArgumentException("Unknown texture target");
             texture=ReadTextureFile(path);
-            if(index<8)AdoptImportedTexture(index,texture);else {Set(Main,MapFields[index],texture);Call(Main,"SetLoadedTexture",MapEnum(index));}
+            if(index<8){RememberReload(index,texture,path);AdoptImportedTexture(index,texture);}else {Set(Main,MapFields[index],texture);Call(Main,"SetLoadedTexture",MapEnum(index));}
             if(index<8)SourceFileNames[index]=Path.GetFileName(path);
             Commit();Status=T("贴图已导入（可撤销）","Texture imported (undo available)");texture=null;
         }catch(Exception e){DestroyUnusedTexture(texture);Error("Import",e);}finally {

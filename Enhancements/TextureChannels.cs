@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using UnityEngine;
 
@@ -63,7 +63,7 @@ public static partial class MaterializeEnhancements
         for(int i=0;i<8;i++){sourceImages[i]=sources[i];InputModes[i]=modes[i];InputInvert[i]=inverses[i];sourceTextures[i]=Get(Main,MapFields[i]) as Texture2D;}
     }
     static void ClearInputSources() {
-        smoothnessSourceRoughness=false;
+        smoothnessSourceRoughness=false;ClearReloadSources();
         for(int i=0;i<8;i++){sourceImages[i]=null;sourceTextures[i]=null;InputModes[i]=0;InputInvert[i]=false;SourceFileNames[i]="";}
     }
     static string[] PackInputSources() {

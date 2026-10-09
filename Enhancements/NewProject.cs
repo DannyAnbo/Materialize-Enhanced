@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 public static partial class MaterializeEnhancements
@@ -13,11 +13,11 @@ public static partial class MaterializeEnhancements
     }
     static void NewProjectNow() {
         if(newProjectDefaults==null)return;
-        Call(Main,"CloseWindows");CancelClose();
+        CloseMapEditor();openExport=false;Call(Main,"CloseWindows");CancelClose();
         windowOpen=openRecent=openResolution=openAbout=confirmClear=false;openInput=openChannel=-1;previewIndex=-1;
         string[] names=(string[])Names.Clone();
         EditState blank=new EditState{values=newProjectDefaults.values,extras=newProjectDefaults.extras,
-            maps=new ImageState[9],sources=new ImageState[8],inputModes=new int[8],inputInvert=new bool[8],sourceNames=new string[8],
+            maps=new ImageState[9],sources=new ImageState[8],inputModes=new int[8],inputInvert=new bool[8],sourceNames=new string[8],reload=new ImageState[8],reloadRough=new bool[8],reloadPaths=new string[8],
             alpha=newProjectDefaults.alpha,ranges=FreeRanges,names=names,width=0,height=0};
         Apply(blank);ClearInputSources();ClearSurfaceDisplay();
         Material sample=Get(Main,"SampleMaterial") as Material;if(sample!=null)sample.SetTexture("_MainTex",Get(Main,"_TextureGrey") as Texture);

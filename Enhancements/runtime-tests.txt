@@ -55,7 +55,7 @@ PASS Property file exported: tga
 PASS Property file exported: tiff
 PASS Old projects still load external texture files
 PASS 4K alpha is correct at first and last pixels
-4K alpha duration milliseconds=78
+4K alpha duration milliseconds=63
 PASS Independent source channel for height
 PASS Independent source channel for diffuse
 PASS Independent source channel for diffuseOriginal
@@ -201,4 +201,69 @@ PASS Channel extraction and resize retain the original source file name
 PASS Clearing a texture removes its stale file name
 PASS Undo clear restores texture and file name together
 PASS New project removes all previous source file names
+PASS Existing map category 0 opens current-map editor
+PASS Apply editor to category 0
+PASS Neutral editing preserves imported map 0
+PASS Edit changes original content, preserves alpha and filename 0
+PASS Undo current-map edit 0
+PASS Redo current-map edit 0
+PASS Existing map category 1 opens current-map editor
+PASS Apply editor to category 1
+PASS Neutral editing preserves imported map 1
+PASS Edit changes original content, preserves alpha and filename 1
+PASS Undo current-map edit 1
+PASS Redo current-map edit 1
+PASS Existing map category 2 opens current-map editor
+PASS Apply editor to category 2
+PASS Neutral editing preserves imported map 2
+PASS Edit changes original content, preserves alpha and filename 2
+PASS Undo current-map edit 2
+PASS Redo current-map edit 2
+PASS Existing map category 3 opens current-map editor
+PASS Apply editor to category 3
+PASS Neutral editing preserves imported map 3
+PASS Edit changes original content, preserves alpha and filename 3
+PASS Undo current-map edit 3
+PASS Redo current-map edit 3
+PASS Existing map category 4 opens current-map editor
+PASS Apply editor to category 4
+PASS Neutral editing preserves imported map 4
+PASS Edit changes original content, preserves alpha and filename 4
+PASS Undo current-map edit 4
+PASS Redo current-map edit 4
+PASS Existing map category 5 opens current-map editor
+PASS Apply editor to category 5
+PASS Neutral editing preserves imported map 5
+PASS Edit changes original content, preserves alpha and filename 5
+PASS Undo current-map edit 5
+PASS Redo current-map edit 5
+PASS Existing map category 6 opens current-map editor
+PASS Apply editor to category 6
+PASS Neutral editing preserves imported map 6
+PASS Edit changes original content, preserves alpha and filename 6
+PASS Undo current-map edit 6
+PASS Redo current-map edit 6
+PASS Existing map category 7 opens current-map editor
+PASS Apply editor to category 7
+PASS Neutral editing preserves imported map 7
+PASS Edit changes original content, preserves alpha and filename 7
+PASS Undo current-map edit 7
+PASS Redo current-map edit 7
+PASS Reload reads changed disk file
+PASS Reload preserves G channel and inversion
+PASS Reload supports undo and redo
+PASS Project embeds reload originals without private absolute source paths
+PASS Reopened project reconnects disk source after its content changed
+PASS Missing disk source restores embedded original after project reopen
+PASS Export selection writes only metallic and property RGBA maps
+PASS Empty export selection writes no texture files
+PASS GPU edge falloff continues changing pixels above one
+PASS Overlap strength above one changes output without collapsed UVs
+PASS Splat edge falloff changes pixels above one
+PASS Surface map has independent generated tiling preview
+PASS Tiling results apply through undoable operation
+PASS Applied tiled maps match viewport and export resolution
+PASS Roughness-only tiling works without adding a height map
+PASS Diffuse mask power above one changes actual exported shader output
+PASS Startup regression fixture saved
 COMPLETE failures=0

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -7,7 +7,7 @@ public static partial class MaterializeEnhancements
 {
     // Snapshots own immutable encoded images, never Unity objects that another operation can destroy.
     sealed class ImageState { public byte[] png; public string name; public FilterMode filter; public TextureWrapMode wrap; public int aniso; }
-    sealed class EditState { public object[][] values; public object[][] extras; public ImageState[] maps,sources; public int[] inputModes; public bool[] inputInvert; public int alpha,width,height; public bool ranges,sourceRoughness; public string[] names,sourceNames; }
+    sealed class EditState { public object[][] values; public object[][] extras; public ImageState[] maps,sources,reload; public int[] inputModes; public bool[] inputInvert,reloadRough; public int alpha,width,height; public bool ranges,sourceRoughness; public string[] names,sourceNames,reloadPaths; }
     static readonly List<EditState> History=new List<EditState>();
     static readonly Dictionary<int,ImageState> imageCache=new Dictionary<int,ImageState>();
     static readonly HashSet<int> dirtyImages=new HashSet<int>();
@@ -66,13 +66,13 @@ public static partial class MaterializeEnhancements
             bool replaced=i<8&&(!object.ReferenceEquals(texture,sourceTextures[i])||(texture!=null&&dirtyImages.Contains(texture.GetInstanceID())));
             state.maps[i]=SnapshotImage(texture);
             if(i<8) {
-                if(replaced){sourceImages[i]=state.maps[i];sourceTextures[i]=texture;InputModes[i]=0;InputInvert[i]=false;SourceFileNames[i]="";if(i==5)smoothnessSourceRoughness=false;}
+                if(replaced){if(texture==null)ClearReload(i);sourceImages[i]=state.maps[i];sourceTextures[i]=texture;InputModes[i]=0;InputInvert[i]=false;SourceFileNames[i]="";if(i==5)smoothnessSourceRoughness=false;}
                 if(texture!=null&&InputModes[i]==0&&!InputInvert[i]&&sourceImages[i]==null)sourceImages[i]=state.maps[i];
             }
         }
         state.sources=(ImageState[])sourceImages.Clone();state.inputModes=(int[])InputModes.Clone();state.inputInvert=(bool[])InputInvert.Clone();
         state.sourceRoughness=smoothnessSourceRoughness;
-        state.sourceNames=(string[])SourceFileNames.Clone();
+        state.sourceNames=(string[])SourceFileNames.Clone();state.reload=(ImageState[])reloadImages.Clone();state.reloadRough=(bool[])reloadRoughness.Clone();state.reloadPaths=(string[])reloadPaths.Clone();
         return state;
     }
     static bool SameValues(object[][] a,object[][] b) {
@@ -83,7 +83,7 @@ public static partial class MaterializeEnhancements
         if(a==null||b==null||a.alpha!=b.alpha||a.ranges!=b.ranges||a.sourceRoughness!=b.sourceRoughness||a.width!=b.width||a.height!=b.height||!SameValues(a.values,b.values)||!SameValues(a.extras,b.extras))return false;
         // Property map is derived from channel selections, source maps and the global workflow.
         for(int i=0;i<8;i++)if(!object.ReferenceEquals(a.maps[i],b.maps[i]))return false;
-        for(int i=0;i<8;i++)if(a.names[i]!=b.names[i]||a.sourceNames[i]!=b.sourceNames[i]||a.inputModes[i]!=b.inputModes[i]||a.inputInvert[i]!=b.inputInvert[i]||!object.ReferenceEquals(a.sources[i],b.sources[i]))return false;return true;
+        for(int i=0;i<8;i++)if(a.names[i]!=b.names[i]||a.sourceNames[i]!=b.sourceNames[i]||!object.ReferenceEquals(a.reload[i],b.reload[i])||a.reloadRough[i]!=b.reloadRough[i]||a.inputModes[i]!=b.inputModes[i]||a.inputInvert[i]!=b.inputInvert[i]||!object.ReferenceEquals(a.sources[i],b.sources[i]))return false;return true;
     }
     static void ResetHistory() {
         History.Clear();imageCache.Clear();dirtyImages.Clear();historyIndex=0;pending=false;last=Capture();History.Add(last);
@@ -93,6 +93,7 @@ public static partial class MaterializeEnhancements
         while(History.Count>2) {
             HashSet<ImageState> unique=new HashSet<ImageState>();long bytes=0;
             foreach(EditState s in History)foreach(ImageState m in s.maps)if(m!=null&&unique.Add(m))bytes+=m.png.Length;
+            foreach(EditState s in History)foreach(ImageState m in s.reload)if(m!=null&&unique.Add(m))bytes+=m.png.Length;
             foreach(EditState s in History)foreach(ImageState m in s.sources)if(m!=null&&unique.Add(m))bytes+=m.png.Length;
             if(History.Count<=120&&bytes<=512L*1024*1024)break;History.RemoveAt(0);historyIndex--;
         }
@@ -136,7 +137,7 @@ public static partial class MaterializeEnhancements
             if(mapsChanged){RenderTexture hd=Get(Main,"_HDHeightMap") as RenderTexture;if(hd!=null){hd.Release();UnityEngine.Object.Destroy(hd);}Set(Main,"_HDHeightMap",null);}
             Alpha=state.alpha;FreeRanges=state.ranges;Names=(string[])state.names.Clone();TextureWidth=state.width;TextureHeight=state.height;
             RestoreInputHistory(state.sources,state.inputModes,state.inputInvert);
-            Array.Copy(state.sourceNames,SourceFileNames,8);
+            Array.Copy(state.sourceNames,SourceFileNames,8);Array.Copy(state.reload,reloadImages,8);Array.Copy(state.reloadRough,reloadRoughness,8);Array.Copy(state.reloadPaths,reloadPaths,8);
             smoothnessSourceRoughness=state.sourceRoughness;ClearSurfaceDisplay();
             if(sample!=null&&previewIndex>=0)sample.SetTexture("_MainTex",(Get(Main,MapFields[previewIndex]) as Texture)??(Get(Main,"_TextureGrey") as Texture));
             Call(Main,"SetFormat",Get(Main,"selectedFormat"));

@@ -1,0 +1,35 @@
+[
+  {
+    "check": "falloff 1 vs 2",
+    "changed_pixels": 341,
+    "size": [
+      32,
+      32
+    ]
+  },
+  {
+    "check": "falloff 2 vs 4",
+    "changed_pixels": 346,
+    "size": [
+      32,
+      32
+    ]
+  },
+  {
+    "check": "selected maps only",
+    "exported_count": 2,
+    "property_rgba": true
+  },
+  {
+    "check": "property export has RGBA",
+    "passed": true
+  },
+  {
+    "check": "embedded reload image contains no machine path",
+    "passed": true
+  },
+  {
+    "check": "project-file startup then new project",
+    "passed": true
+  }
+]

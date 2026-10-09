@@ -27,7 +27,7 @@ public static partial class MaterializeEnhancements
     static readonly Dictionary<string,FieldInfo> Fields=new Dictionary<string,FieldInfo>();
     static readonly Dictionary<int,Vector2> Ranges=new Dictionary<int,Vector2>();
     static object[] guis,settings;
-    static bool started,cliDone,windowOpen;
+    static bool started,cliDone,windowOpen,startupCheckStarted;
     static float changedAt;
     static Rect window=new Rect(1180,65,520,600);
     static string[] editNames;
@@ -102,7 +102,7 @@ public static partial class MaterializeEnhancements
             Call(newGuis[i],"InitializeSettings");newSettings[i]=Get(newGuis[i],SettingFields[i]);if(newSettings[i]==null)return false;
         }
         guis=newGuis;settings=newSettings;
-        if(History.Count==0)ResetHistory();return true;
+        if(History.Count==0)ResetHistory();if(newProjectDefaults==null)newProjectDefaults=Capture();return true;
     }
     public static void Tick(object main) {
         try {
@@ -114,10 +114,12 @@ public static partial class MaterializeEnhancements
                 cliDone=true;
                 string[] args=Environment.GetCommandLineArgs();
                 for(int i=1;i<args.Length;i++) {
+                    if(args[i]=="--enhance-v7test"&&i+1<args.Length){V7SelfTest.StartOnly(main,args[i+1]);break;}
                     if(args[i]=="--enhance-selftest" && i+1<args.Length){EnhanceSelfTest.Start(main,args[i+1]);break;}
                     if(args[i].EndsWith(".mtz",StringComparison.OrdinalIgnoreCase) && File.Exists(args[i])) {Call(Get(main,"SaveLoadProjectScript"),"LoadProject",Path.GetFullPath(args[i]));break;}
                 }
             }
+            if(cliDone&&!startupCheckStarted){string[] startupArgs=Environment.GetCommandLineArgs();for(int i=1;i<startupArgs.Length-1;i++)if(startupArgs[i]=="--v7-startup-check"){startupCheckStarted=true;((MonoBehaviour)main).StartCoroutine(V7SelfTest.CheckStartup(main,startupArgs[i+1]));}}
             PollDrops();
             NormalizeGeneratedMaps();
             TrackHistory();
@@ -202,7 +204,7 @@ public static partial class MaterializeEnhancements
             Set(po,"zhSessionValues",PackSessionValues());
             Set(po,"zhTextureSize",new int[]{TextureWidth,TextureHeight});
             Set(po,"zhSourceRoughness",smoothnessSourceRoughness);
-            Set(po,"zhSourceNames",(string[])SourceFileNames.Clone());
+            Set(po,"zhSourceNames",(string[])SourceFileNames.Clone());PackReloadSources(po);
             // Stage the complete project before touching an existing project file.
             string file=path+".mtz",temp=file+".writing";
             using(FileStream stream=new FileStream(temp,FileMode.Create,FileAccess.Write))new XmlSerializer(po.GetType()).Serialize(stream,po);
@@ -217,19 +219,21 @@ public static partial class MaterializeEnhancements
     static string Extension(int format){return format==0?"bmp":format==1?"jpg":format==2?"png":format==3?"tga":"tiff";}
     public static void ExportAll(object sl,string path,int format) {
         if(string.IsNullOrEmpty(path))return;
-        try {ValidateNames(Names);((MonoBehaviour)sl).StartCoroutine(ExportRoutine(sl,ProjectBase(path),format));}
+        try {ValidateNames(Names);((MonoBehaviour)sl).StartCoroutine(ExportRoutine(sl,ProjectBase(path),format,null));}
         catch(Exception e){Error("Export",e);}
     }
-    static IEnumerator ExportRoutine(object sl,string path,int format) {
+    static IEnumerator ExportRoutine(object sl,string path,int format,bool[] selected) {
         object main=Get(sl,"mainGui");string project=Path.GetFileName(path),dir=Path.GetDirectoryName(path);string[] names=(string[])Names.Clone();
         names[5]=OutputName(5);
-        for(int i=0;i<8;i++) {
+        for(int i=0;i<9;i++) {
+            if(selected!=null&&!selected[i])continue;
+            if(i==8){if(selected==null)continue;Call(main,"ProcessPropertyMap");}
             Texture2D t=Get(main,MapFields[i]) as Texture2D;if(t==null)continue;
-            string name=Path.Combine(dir,ExportName(project,names[i]));
+            string name=Path.Combine(dir,ExportName(project,i==8?"_msao":names[i]));
             IEnumerator save=Call(sl,"SaveTexture",Extension(format),t,name) as IEnumerator;
             if(save!=null)yield return ((MonoBehaviour)sl).StartCoroutine(save);
         }
-        Status=T("全部贴图已导出","All texture maps exported");
+        Status=T("所选贴图已导出","Selected texture maps exported");
     }
     public static IEnumerator LoadTextures(object sl,string path) {
         object po=Get(sl,"thisProject");string[] embedded=Get(po,"zhEmbedded") as string[];
@@ -254,7 +258,7 @@ public static partial class MaterializeEnhancements
         }
         Texture2D previous=Get(main,"_PropertyMap") as Texture2D;if(previous!=null)UnityEngine.Object.Destroy(previous);Set(main,"_PropertyMap",null);
         Call(main,"SetMaterialValues");Call(main,"FixSize");Call(main,"ProcessPropertyMap");
-        Main=main;Bind();RestoreSourceNames(po,false);RestoreResolution(po);RestoreSurfaceWorkflow(po);Call(main,"ProcessPropertyMap");RestoreSessionValues(po);ResetHistory();ProjectLoaded(path);Set(sl,"busy",false);RememberProject(path);
+        Main=main;Bind();RestoreSourceNames(po,false);RestoreReloadSources(po);RestoreResolution(po);RestoreSurfaceWorkflow(po);Call(main,"ProcessPropertyMap");RestoreSessionValues(po);ResetHistory();ProjectLoaded(path);Set(sl,"busy",false);RememberProject(path);
     }
     static IEnumerator RestoreTextures(object sl,object po,string[] embedded,string path) {
         object main=Get(sl,"mainGui");Call(main,"CloseWindows");Texture2D[] decoded=new Texture2D[Math.Min(embedded.Length,9)];bool valid=true;
@@ -272,7 +276,7 @@ public static partial class MaterializeEnhancements
         for(int i=0;i<decoded.Length;i++)Set(main,MapFields[i],decoded[i]);
         Main=main;RestoreInputHistory(inputs,inputModes,inputInvert);
         RestoreSurfaceWorkflow(po);
-        RestoreSourceNames(po,true);
+        RestoreSourceNames(po,true);RestoreReloadSources(po);
         string[] names=Get(po,"zhMapNames") as string[];if(names!=null && names.Length==8)Names=(string[])names.Clone();
         int[] channels=Get(po,"zhChannels") as int[];
         if(channels!=null && channels.Length==4) {
