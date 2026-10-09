@@ -47,3 +47,6 @@ zh_config.txt
 enhance-*.log
 tempPreview.png
 tempThumb.png
+
+texture_sources.txt
+Enhancements/tools/unity-assets/
